@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name" translatable="false">FireVPN</string>
     <string name="title_based_on">Основано на v2rayNG от 2dust (GPL-3.0)</string>
+    <string name="firevpn_update_later">Позже</string>
     <string name="firevpn_welcome_text">Вставь ссылку-подписку из бота FireVPN или из личного кабинета на сайте — здесь появятся серверы.</string>
     <string name="firevpn_welcome_paste">Вставить ссылку из буфера</string>
     <string name="firevpn_welcome_scan">Сканировать QR-код</string>

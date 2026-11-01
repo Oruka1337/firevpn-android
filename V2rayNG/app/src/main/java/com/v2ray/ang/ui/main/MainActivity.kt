@@ -8,12 +8,24 @@ import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import com.v2ray.ang.AngApplication
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.LauncherManager
+import com.v2ray.ang.dto.CheckUpdateResult
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.enums.PermissionType
@@ -25,6 +37,7 @@ import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsChangeManager
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.handler.SubscriptionInfoParser
+import com.v2ray.ang.handler.UpdateCheckerManager
 import com.v2ray.ang.ui.AboutActivity
 import com.v2ray.ang.ui.backup.BackupActivity
 import com.v2ray.ang.ui.base.HelperBaseComponentActivity
@@ -96,6 +109,28 @@ class MainActivity : HelperBaseComponentActivity() {
         mainViewModel.onAction(MainAction.Initialize)
 
         checkAndRequestPermission(PermissionType.POST_NOTIFICATIONS) {}
+        checkUpdateOnStart()
+    }
+
+    // FireVPN: сами смотрим latest.json на сайте и предлагаем обновиться — без похода в меню
+    private var pendingUpdate by mutableStateOf<CheckUpdateResult?>(null)
+
+    private fun checkUpdateOnStart() {
+        val now = System.currentTimeMillis()
+        val last = MmkvManager.decodeSettingsLong(AppConfig.PREF_FIREVPN_LAST_UPDATE_CHECK, 0L)
+        if (now - last < AppConfig.FIREVPN_UPDATE_CHECK_INTERVAL_MS) return
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val result = UpdateCheckerManager.checkForUpdate()
+                MmkvManager.encodeSettings(AppConfig.PREF_FIREVPN_LAST_UPDATE_CHECK, now)
+                if (result.hasUpdate && result.downloadUrl != null) {
+                    withContext(Dispatchers.Main) { pendingUpdate = result }
+                }
+            } catch (e: Exception) {
+                // нет сети или сайт не ответил — попробуем при следующем запуске
+                LogUtil.w(AppConfig.TAG, "FireVPN update check failed: ${e.message}")
+            }
+        }
     }
 
     // FireVPN: вернулись на главный экран (например, после ссылки firevpn://install-...) — перечитываем серверы;
@@ -131,6 +166,31 @@ class MainActivity : HelperBaseComponentActivity() {
                 }
             },
             onNavigate = { route -> navigateTo(route) },
+        )
+        pendingUpdate?.let { UpdateDialog(it) }
+    }
+
+    @Composable
+    private fun UpdateDialog(result: CheckUpdateResult) {
+        AlertDialog(
+            onDismissRequest = { pendingUpdate = null },
+            title = { Text(stringResource(R.string.update_new_version_found, result.latestVersion ?: "")) },
+            text = {
+                Text(
+                    text = result.releaseNotes.orEmpty(),
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingUpdate = null
+                    result.downloadUrl?.let { Utils.openUri(this, it) }
+                }) { Text(stringResource(R.string.update_now)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingUpdate = null }) { Text(stringResource(R.string.firevpn_update_later)) }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 

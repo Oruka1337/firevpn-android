@@ -132,6 +132,12 @@ object AppConfig {
     const val UPSTREAM_URL = "$GITHUB_URL/2dust/v2rayNG"
     // проверка обновлений — на нашем сайте (в формате релиза GitHub), а не у авторов v2rayNG
     const val APP_UPDATE_URL = "https://fire-vpn.online/download/android/latest.json"
+    // FireVPN: при запуске проверяем новую версию не чаще раза в 12 часов
+    const val PREF_FIREVPN_LAST_UPDATE_CHECK = "pref_firevpn_last_update_check"
+    const val FIREVPN_UPDATE_CHECK_INTERVAL_MS = 12 * 60 * 60 * 1000L
+    // FireVPN: подписка сама обновляется раз в 6 часов (новые серверы появляются без кнопки)
+    const val FIREVPN_SUB_UPDATE_INTERVAL_MINUTES = 360L
+    const val PREF_FIREVPN_SUB_AUTOUPDATE_SET = "pref_firevpn_sub_autoupdate_set"
     const val APP_ISSUES_URL = "https://t.me/VpnFire57_bot?start=support"
     const val APP_WIKI_MODE = "$UPSTREAM_URL/wiki/Mode"
     const val APP_PRIVACY_POLICY = "https://fire-vpn.online/privacy.html"

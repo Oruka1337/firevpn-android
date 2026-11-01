@@ -632,6 +632,8 @@ object AngConfigManager {
         val subItem = SubscriptionItem()
         subItem.remarks = uri.fragment ?: "FireVPN"  // FireVPN: так подписка называется во вкладке
         subItem.url = url
+        subItem.autoUpdate = true  // FireVPN: новые серверы подтягиваются сами
+        subItem.updateInterval = AppConfig.FIREVPN_SUB_UPDATE_INTERVAL_MINUTES
         MmkvManager.encodeSubscription("", subItem)
         return 1
     }

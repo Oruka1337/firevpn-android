@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name" translatable="false">FireVPN</string>
     <string name="title_based_on">Based on v2rayNG by 2dust (GPL-3.0)</string>
+    <string name="firevpn_update_later">Later</string>
     <string name="firevpn_welcome_text">Paste your subscription link from the FireVPN bot or your account on the website — servers will appear here.</string>
     <string name="firevpn_welcome_paste">Paste link from clipboard</string>
     <string name="firevpn_welcome_scan">Scan QR code</string>

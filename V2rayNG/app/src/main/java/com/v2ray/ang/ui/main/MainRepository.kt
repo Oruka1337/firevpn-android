@@ -226,7 +226,22 @@ class MainRepository(
     }
 
     override fun syncSubscriptions() {
+        enableSubAutoUpdateOnce()
         SubscriptionUpdater.sync(app)
+    }
+
+    // FireVPN: у тех, кто поставил 1.0.0/1.0.1, подписка без автообновления — включаем один раз
+    // (если потом человек сам выключит его в настройках подписки, больше не трогаем)
+    private fun enableSubAutoUpdateOnce() {
+        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_FIREVPN_SUB_AUTOUPDATE_SET, false)) return
+        MmkvManager.decodeSubscriptions()
+            .filter { it.subscription.url.isNotEmpty() && !it.subscription.autoUpdate }
+            .forEach {
+                it.subscription.autoUpdate = true
+                it.subscription.updateInterval = AppConfig.FIREVPN_SUB_UPDATE_INTERVAL_MINUTES
+                MmkvManager.encodeSubscription(it.guid, it.subscription)
+            }
+        MmkvManager.encodeSettings(AppConfig.PREF_FIREVPN_SUB_AUTOUPDATE_SET, true)
     }
 
     override fun initAssets() {
