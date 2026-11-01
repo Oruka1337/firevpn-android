@@ -74,7 +74,6 @@ private val Gold = Color(0xFFFFB02E)
 private val TextMain = Color(0xFFFFF3EC)
 private val TextDim = Color(0xFFC9A59A)
 private const val INVITE_URL = "https://t.me/VpnFire57_bot?start=invite"
-private const val CABINET_URL = "https://fire-vpn.online/my/"
 
 /** Рамка с огненным свечением, как на макете. */
 private fun Modifier.fireGlow(shape: Shape, glow: Dp = 14.dp, strong: Boolean = false): Modifier = this
@@ -212,7 +211,6 @@ private fun SubscriptionCard(
     onRefresh: () -> Unit,
     onSwap: () -> Unit,
 ) {
-    val context = LocalContext.current
     val info = group.usageInfo
     val now = System.currentTimeMillis() / 1000
     val active = info != null && (info.expire == 0L || info.expire > now)
@@ -276,11 +274,7 @@ private fun SubscriptionCard(
                 modifier = Modifier.weight(1f)
             )
         }
-        GlowButton(
-            text = stringResource(R.string.firevpn_sub_cabinet),
-            filled = false,
-            onClick = { Utils.openUri(context, info?.webPageUrl ?: CABINET_URL) }
-        )
+        // кнопку «Личный кабинет» убрали — он есть в меню слева
     }
 }
 
@@ -327,8 +321,8 @@ private fun ConnectButton(isRunning: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
-            .fireGlow(shape, glow = if (isRunning) 24.dp else 14.dp, strong = true)
+            .height(110.dp)  // главная кнопка экрана — крупная, чтобы попасть с первого раза
+            .fireGlow(shape, glow = if (isRunning) 28.dp else 18.dp, strong = true)
             .clip(shape)
             .background(
                 if (isRunning) Brush.horizontalGradient(listOf(Flame, FireRed))
@@ -340,8 +334,8 @@ private fun ConnectButton(isRunning: Boolean, onClick: () -> Unit) {
         Text(
             text = stringResource(if (isRunning) R.string.firevpn_disconnect else R.string.firevpn_connect),
             color = TextMain,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Black
         )
     }
 }
