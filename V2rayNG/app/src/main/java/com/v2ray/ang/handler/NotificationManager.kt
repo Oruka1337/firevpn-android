@@ -36,6 +36,7 @@ object NotificationManager {
 
     private var lastQueryTime = 0L
     private var mBuilder: NotificationCompat.Builder? = null
+    private var serverLine: String? = null
     private var speedNotificationJob: Job? = null
     private var mNotificationManager: NotificationManager? = null
 
@@ -66,6 +67,7 @@ object NotificationManager {
 
         // Reset last query time to avoid querying stats too soon after showing the notification
         lastQueryTime = System.currentTimeMillis()
+        serverLine = currentConfig?.remarks?.takeIf { it.isNotBlank() }?.let { "Сервер: $it" }
 
         val flags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 
@@ -93,7 +95,10 @@ object NotificationManager {
 
         mBuilder = NotificationCompat.Builder(service, channelId)
             .setSmallIcon(R.drawable.ic_stat_name)
-            .setContentTitle(currentConfig?.remarks ?: service.getString(R.string.app_name))
+            // FireVPN: «🔥 FireVPN — Подключено» и сервер вместо голого названия профиля
+            .setContentTitle("🔥 FireVPN — Подключено")
+            .setContentText(serverLine ?: "Защищённое соединение включено")
+            .setColor(0xFFFF6A1F.toInt())
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setShowWhen(false)
@@ -186,8 +191,10 @@ object NotificationManager {
             } else {
                 mBuilder?.setSmallIcon(R.drawable.ic_stat_direct)
             }
-            mBuilder?.setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
-            mBuilder?.setContentText(contentText)
+            // FireVPN: сервер остаётся в уведомлении, скорость — строкой ниже
+            val text = listOfNotNull(serverLine, contentText?.takeIf { it.isNotBlank() }).joinToString("\n")
+            mBuilder?.setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            mBuilder?.setContentText(serverLine ?: contentText)
             getNotificationManager()?.notify(NOTIFICATION_ID, mBuilder?.build())
         }
     }

@@ -8,14 +8,7 @@ import com.v2ray.ang.ui.compose.AppSnackbarManager
 import com.v2ray.ang.ui.compose.ToastType
 
 private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
-
-private fun runOnMain(block: () -> Unit) {
-    if (Looper.myLooper() == Looper.getMainLooper()) {
-        block()
-    } else {
-        mainHandler.post(block)
-    }
-}
+private const val SNACKBAR_RETRY_MS = 700L
 
 private fun Context.dispatchMessage(
     message: CharSequence,
@@ -30,9 +23,13 @@ private fun Context.dispatchMessage(
     if (!handledBySnackbar) {
         val appContext = applicationContext
         val duration = if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
-        runOnMain {
-            Toast.makeText(appContext, message, duration).show()
-        }
+        // FireVPN: экран мог быть на паузе на долю секунды (например, системный запрос VPN) —
+        // ждём его и показываем огненную плашку; не вернулся — обычное сообщение Android
+        mainHandler.postDelayed({
+            if (!AppSnackbarManager.show(message = message, type = type, long = long)) {
+                Toast.makeText(appContext, message, duration).show()
+            }
+        }, SNACKBAR_RETRY_MS)
     }
 }
 

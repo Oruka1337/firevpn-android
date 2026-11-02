@@ -1,5 +1,7 @@
 package com.v2ray.ang.ui.compose
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -8,6 +10,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +29,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -31,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.v2ray.ang.R
 import com.v2ray.ang.extension.delay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -149,7 +159,11 @@ fun AppSnackbarBridge(
     }
 }
 
-private val ToastCornerRadius = 24.dp
+private val FireToastBg = Color(0xF21C0A0B)
+private val FireToastFlame = Color(0xFFFF6A1F)
+private val FireToastGold = Color(0xFFFFB02E)
+private val FireToastRed = Color(0xFFE8203C)
+private val ToastCornerRadius = 18.dp
 private val ToastHorizontalPad = 16.dp
 private val ToastVerticalPad = 12.dp
 private const val ToastMaxLines = 8
@@ -175,12 +189,13 @@ fun AppSnackbarHost(
         ) { data ->
             val type = (data.visuals as? AppSnackbarVisuals)?.type ?: ToastType.NORMAL
 
-            val isDark = LocalDarkTheme.current
-            val bgColor = when (type) {
-                ToastType.NORMAL -> if (isDark) toastNormalBgDark else toastNormalBgLight
-                ToastType.SUCCESS -> toastSuccessBg
-                ToastType.ERROR -> toastErrorBg
-                ToastType.INFO -> toastInfoBg
+            // FireVPN: тёмная плашка с огоньком и огненной рамкой, как в приложении для компьютера
+            val shape = RoundedCornerShape(ToastCornerRadius)
+            val glow = if (type == ToastType.ERROR) FireToastRed else FireToastFlame
+            val frame = if (type == ToastType.ERROR) {
+                Brush.verticalGradient(listOf(FireToastRed, FireToastRed))
+            } else {
+                Brush.linearGradient(listOf(FireToastGold, FireToastFlame, FireToastRed))
             }
 
             Box(
@@ -192,9 +207,11 @@ fun AppSnackbarHost(
                 Surface(
                     modifier = Modifier
                         .wrapContentWidth()
-                        .widthIn(max = maxSnackbarWidth),
-                    shape = RoundedCornerShape(ToastCornerRadius),
-                    color = bgColor,
+                        .widthIn(max = maxSnackbarWidth)
+                        .shadow(16.dp, shape, ambientColor = glow, spotColor = glow),
+                    shape = shape,
+                    color = FireToastBg,
+                    border = BorderStroke(1.5.dp, frame),
                     shadowElevation = 0.dp,
                 ) {
                     Row(
@@ -205,6 +222,12 @@ fun AppSnackbarHost(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Image(
+                            painter = painterResource(R.drawable.firevpn_flame),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
                         Text(
                             text = data.visuals.message,
                             color = toastTextColor,
