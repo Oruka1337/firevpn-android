@@ -23,7 +23,6 @@
     <string name="firevpn_connect">Connect</string>
     <string name="firevpn_disconnect">Disconnect</string>
     <string name="firevpn_pick_server">Choose a server</string>
-    <string name="firevpn_all_profiles">All profiles and settings</string>
     <string name="firevpn_menu_support">Support</string>
     <string name="firevpn_menu_cabinet">My account</string>
     <string name="app_widget_name">Switch</string>

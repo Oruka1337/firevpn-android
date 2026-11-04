@@ -92,7 +92,6 @@ fun FireVpnHome(
     isRunning: Boolean,
     statusText: String,
     onAction: (MainAction) -> Unit,
-    onShowAllProfiles: () -> Unit,
 ) {
     // подписка FireVPN — группа с данными подписки, иначе выбранная/первая
     val group = groups.firstOrNull { it.usageInfo != null } ?: groups.first()
@@ -121,16 +120,6 @@ fun FireVpnHome(
             ConnectButton(isRunning = isRunning, onClick = { onAction(MainAction.ToggleService) })
         }
         UsageTiles(group)
-        Text(
-            text = stringResource(R.string.firevpn_all_profiles),
-            color = TextDim,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onShowAllProfiles() }
-                .padding(vertical = 6.dp)
-        )
         Text(
             text = statusText,
             color = TextDim,

@@ -1,6 +1,5 @@
 package com.v2ray.ang.ui.main
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,10 +54,8 @@ fun MainScreen(
         mainViewModel.serverGroupState(group.id).collectAsStateWithLifecycle().value.servers
     }
     val showWelcome = groups.isEmpty() || (onlyGroupServers != null && onlyGroupServers.isEmpty() && !isLoading)
-    // FireVPN: простой главный экран (подписка, «Подключить»); полный список профилей — по кнопке, назад — «Назад»
-    var showAllProfiles by rememberSaveable { mutableStateOf(false) }
-    val homeMode = !showWelcome && !showAllProfiles
-    BackHandler(enabled = showAllProfiles) { showAllProfiles = false }
+    // FireVPN: только простой главный экран (подписка, «Подключить»); полного списка профилей нет
+    val homeMode = !showWelcome
 
     val isDarkTheme = LocalDarkTheme.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -216,7 +213,6 @@ fun MainScreen(
                     isRunning = isRunning,
                     statusText = displayText,
                     onAction = onAction,
-                    onShowAllProfiles = { showAllProfiles = true },
                 )
             } else if (!showWelcome) {
                 Column(

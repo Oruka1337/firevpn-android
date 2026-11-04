@@ -23,7 +23,6 @@
     <string name="firevpn_connect">Подключить</string>
     <string name="firevpn_disconnect">Отключить</string>
     <string name="firevpn_pick_server">Выбери сервер</string>
-    <string name="firevpn_all_profiles">Все профили и настройки</string>
     <string name="firevpn_menu_support">Поддержка</string>
     <string name="firevpn_menu_cabinet">Личный кабинет</string>
     <string name="app_widget_name">v2rayNG</string>
