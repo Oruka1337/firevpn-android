@@ -7,6 +7,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -54,6 +56,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.dto.GroupMapItem
 import com.v2ray.ang.util.Utils
@@ -93,8 +96,10 @@ fun FireVpnHome(
     statusText: String,
     onAction: (MainAction) -> Unit,
 ) {
-    // подписка FireVPN — группа с данными подписки, иначе выбранная/первая
-    val group = groups.firstOrNull { it.usageInfo != null } ?: groups.first()
+    // подписка FireVPN — группа с данными подписки; пока она не скачалась — любая, кроме служебной «Default»
+    val group = groups.firstOrNull { it.usageInfo != null }
+        ?: groups.firstOrNull { it.id != AppConfig.DEFAULT_SUBSCRIPTION_ID }
+        ?: groups.first()
     val servers = mainViewModel.serverGroupState(group.id).collectAsStateWithLifecycle().value.servers
     val current = servers.firstOrNull { it.guid == selectedGuid }
     var showPicker by remember { mutableStateOf(false) }
@@ -119,7 +124,7 @@ fun FireVpnHome(
             // «Подключить» в одной карточке с сервером — видно без прокрутки; срок и трафик — ниже
             ConnectButton(isRunning = isRunning, onClick = { onAction(MainAction.ToggleService) })
         }
-        UsageTiles(group)
+        UsageTiles(group, onPasteLink = { onAction(MainAction.ImportClipboard) })
         Text(
             text = statusText,
             color = TextDim,
@@ -251,13 +256,14 @@ private fun SubscriptionCard(
     }
 }
 
-/** Срок подписки и трафик — под кнопкой «Подключить» */
+/** Срок подписки и трафик — под кнопкой «Подключить»; под датой — «Вставить ссылку» (новая подписка из буфера) */
 @Composable
-private fun UsageTiles(group: GroupMapItem) {
+private fun UsageTiles(group: GroupMapItem, onPasteLink: () -> Unit) {
     val info = group.usageInfo
     val now = System.currentTimeMillis() / 1000
     val active = info != null && (info.expire == 0L || info.expire > now)
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    // плитки одной высоты, хотя под датой ещё кнопка
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
         InfoTile(
             label = stringResource(if (active) R.string.firevpn_sub_active else R.string.firevpn_sub_inactive),
             value = when {
@@ -268,19 +274,37 @@ private fun UsageTiles(group: GroupMapItem) {
                     DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault()).format(Date(info.expire * 1000))
                 )
             },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            action = {
+                Text(
+                    text = stringResource(R.string.firevpn_paste_link),
+                    color = Flame,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(1.dp, Color(0x66FF6A1F), RoundedCornerShape(10.dp))
+                        .clickable(onClick = onPasteLink)
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                )
+            }
         )
         InfoTile(
             label = stringResource(R.string.firevpn_sub_traffic),
             value = if (info == null) "—" else
                 "${bytes(info.upload + info.download)} / ${if (info.total > 0) bytes(info.total) else "∞"}",
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).fillMaxHeight()
         )
     }
 }
 
 @Composable
-private fun InfoTile(label: String, value: String, modifier: Modifier = Modifier) {
+private fun InfoTile(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    action: (@Composable () -> Unit)? = null,
+) {
     val shape = RoundedCornerShape(16.dp)
     Column(
         modifier = modifier
@@ -293,6 +317,10 @@ private fun InfoTile(label: String, value: String, modifier: Modifier = Modifier
         Spacer(Modifier.height(4.dp))
         Text(value, color = TextMain, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1,
             overflow = TextOverflow.Ellipsis)
+        if (action != null) {
+            Spacer(Modifier.height(10.dp))
+            action()
+        }
     }
 }
 

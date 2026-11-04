@@ -19,6 +19,7 @@
     <string name="firevpn_sub_until">до %1$s</string>
     <string name="firevpn_sub_forever">бессрочно</string>
     <string name="firevpn_sub_traffic">Трафик</string>
+    <string name="firevpn_paste_link">📋 Вставить ссылку</string>
     <string name="firevpn_sub_cabinet">Личный кабинет</string>
     <string name="firevpn_connect">Подключить</string>
     <string name="firevpn_disconnect">Отключить</string>

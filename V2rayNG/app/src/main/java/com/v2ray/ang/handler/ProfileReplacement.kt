@@ -6,7 +6,9 @@ internal object ProfileReplacement {
 
     /**
      * Finds the profile that should become selected after publishing a replacement batch.
-     * The first profile becomes selected when the store has no current selection.
+     * When the store has no current selection, the profile shown at the top of the list becomes selected:
+     * a subscription batch is parsed bottom-up, so that is the last one in [profiles]
+     * (FireVPN: the first server of the subscription, not the last «игровой» one).
      */
     fun findSelectedReplacement(
         profiles: Map<String, ProfileItem>,
@@ -14,7 +16,7 @@ internal object ProfileReplacement {
         selectedProfile: ProfileItem?,
     ): String? {
         if (profiles.isEmpty()) return null
-        if (currentSelection.isNullOrBlank()) return profiles.keys.first()
+        if (currentSelection.isNullOrBlank()) return profiles.keys.last()
         if (selectedProfile == null) return null
 
         if (selectedProfile.remarks.isNotBlank()) {

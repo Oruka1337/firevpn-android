@@ -78,17 +78,18 @@ class ProfileReplacementTest {
     }
 
     @Test
-    fun `selects the first profile when there is no current selection`() {
+    fun `selects the top of the list when there is no current selection`() {
+        // batches are parsed bottom-up: the last profile here is the first line of the subscription
         val result = ProfileReplacement.findSelectedReplacement(
             profiles = linkedMapOf(
-                "first" to profile(server = "first"),
-                "second" to profile(server = "second"),
+                "last-line" to profile(server = "last"),
+                "first-line" to profile(server = "first"),
             ),
             currentSelection = null,
             selectedProfile = null,
         )
 
-        assertEquals("first", result)
+        assertEquals("first-line", result)
     }
 
     @Test

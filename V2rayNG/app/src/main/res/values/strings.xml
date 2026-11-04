@@ -19,6 +19,7 @@
     <string name="firevpn_sub_until">until %1$s</string>
     <string name="firevpn_sub_forever">no end date</string>
     <string name="firevpn_sub_traffic">Traffic</string>
+    <string name="firevpn_paste_link">📋 Paste link</string>
     <string name="firevpn_sub_cabinet">My account</string>
     <string name="firevpn_connect">Connect</string>
     <string name="firevpn_disconnect">Disconnect</string>

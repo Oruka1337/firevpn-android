@@ -219,7 +219,9 @@ object AngConfigManager {
             }
 
             var count = 0
+            // FireVPN: из Telegram и буфера обмена ссылка приходит с пробелами и «\r» по краям
             servers.lines()
+                .map { it.trim() }
                 .distinct()
                 .forEach { str ->
                     if (Utils.isValidSubUrl(str)) {
@@ -629,6 +631,9 @@ object AngConfigManager {
             }
         }
         val uri = URI(Utils.fixIllegalUrl(url))
+        // FireVPN: подписка у человека одна — новая (после окончания старой адрес другой) заменяет прежние
+        // вместе с их серверами, иначе главный экран показывает старую, просроченную; «Default» без адреса не трогаем
+        subscriptions.filter { it.subscription.url.isNotEmpty() }.forEach { MmkvManager.removeSubscription(it.guid) }
         val subItem = SubscriptionItem()
         subItem.remarks = uri.fragment ?: "FireVPN"  // FireVPN: так подписка называется во вкладке
         subItem.url = url
