@@ -113,19 +113,14 @@ fun FireVpnHome(
         SubscriptionCard(
             group = group,
             serverName = current?.profile?.remarks,
-            onRefresh = { onAction(MainAction.UpdateSubscriptions) },
+            // обновляем ту подписку, что на карточке (выбранная вкладка может быть пустой «Default»)
+            onRefresh = { onAction(MainAction.UpdateGroupSubscription(group.id)) },
             onSwap = { showPicker = true },
-        )
-        ConnectButton(isRunning = isRunning, onClick = { onAction(MainAction.ToggleService) })
-        Text(
-            text = statusText,
-            color = TextDim,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(enabled = isRunning) { onAction(MainAction.TestCurrentServer) }
-        )
+        ) {
+            // «Подключить» в одной карточке с сервером — видно без прокрутки; срок и трафик — ниже
+            ConnectButton(isRunning = isRunning, onClick = { onAction(MainAction.ToggleService) })
+        }
+        UsageTiles(group)
         Text(
             text = stringResource(R.string.firevpn_all_profiles),
             color = TextDim,
@@ -135,6 +130,15 @@ fun FireVpnHome(
                 .fillMaxWidth()
                 .clickable { onShowAllProfiles() }
                 .padding(vertical = 6.dp)
+        )
+        Text(
+            text = statusText,
+            color = TextDim,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = isRunning) { onAction(MainAction.TestCurrentServer) }
         )
         Spacer(Modifier.navigationBarsPadding())
     }
@@ -210,10 +214,9 @@ private fun SubscriptionCard(
     serverName: String?,
     onRefresh: () -> Unit,
     onSwap: () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val info = group.usageInfo
-    val now = System.currentTimeMillis() / 1000
-    val active = info != null && (info.expire == 0L || info.expire > now)
     val shape = RoundedCornerShape(24.dp)
     Column(
         modifier = Modifier
@@ -254,27 +257,36 @@ private fun SubscriptionCard(
                 Icon(painterResource(R.drawable.ic_firevpn_swap_24dp), contentDescription = null, tint = Flame)
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            InfoTile(
-                label = stringResource(if (active) R.string.firevpn_sub_active else R.string.firevpn_sub_inactive),
-                value = when {
-                    info == null -> "—"
-                    info.expire == 0L -> stringResource(R.string.firevpn_sub_forever)
-                    else -> stringResource(
-                        R.string.firevpn_sub_until,
-                        DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault()).format(Date(info.expire * 1000))
-                    )
-                },
-                modifier = Modifier.weight(1f)
-            )
-            InfoTile(
-                label = stringResource(R.string.firevpn_sub_traffic),
-                value = if (info == null) "—" else
-                    "${bytes(info.upload + info.download)} / ${if (info.total > 0) bytes(info.total) else "∞"}",
-                modifier = Modifier.weight(1f)
-            )
-        }
+        content()
         // кнопку «Личный кабинет» убрали — он есть в меню слева
+    }
+}
+
+/** Срок подписки и трафик — под кнопкой «Подключить» */
+@Composable
+private fun UsageTiles(group: GroupMapItem) {
+    val info = group.usageInfo
+    val now = System.currentTimeMillis() / 1000
+    val active = info != null && (info.expire == 0L || info.expire > now)
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        InfoTile(
+            label = stringResource(if (active) R.string.firevpn_sub_active else R.string.firevpn_sub_inactive),
+            value = when {
+                info == null -> "—"
+                info.expire == 0L -> stringResource(R.string.firevpn_sub_forever)
+                else -> stringResource(
+                    R.string.firevpn_sub_until,
+                    DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault()).format(Date(info.expire * 1000))
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+        InfoTile(
+            label = stringResource(R.string.firevpn_sub_traffic),
+            value = if (info == null) "—" else
+                "${bytes(info.upload + info.download)} / ${if (info.total > 0) bytes(info.total) else "∞"}",
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
