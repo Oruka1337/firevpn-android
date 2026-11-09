@@ -13,8 +13,8 @@ android {
         applicationId = "online.firevpn.android"  // FireVPN; код остаётся в пакете com.v2ray.ang (под него собраны готовые библиотеки)
         minSdk = 24
         targetSdk = 37
-        versionCode = 7
-        versionName = "1.0.6"  // FireVPN; основа — v2rayNG 2.3.15
+        versionCode = 8
+        versionName = "1.0.7"  // FireVPN; основа — v2rayNG 2.3.15
 
         val abiFilterList = (properties["ABI_FILTERS"] as? String)?.split(';')
         splits {

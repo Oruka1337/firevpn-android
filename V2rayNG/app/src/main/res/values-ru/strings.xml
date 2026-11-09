@@ -20,6 +20,15 @@
     <string name="firevpn_sub_forever">бессрочно</string>
     <string name="firevpn_sub_traffic">Трафик</string>
     <string name="firevpn_paste_link">📋 Вставить ссылку</string>
+    <string name="firevpn_tv_add">📺 Добавить подписку</string>
+    <string name="firevpn_tv_title">Добавь подписку на телевизор</string>
+    <string name="firevpn_tv_scan">Отсканируй QR-код камерой телефона — откроется бот FireVPN, нажми «Да, подключить телевизор».</string>
+    <string name="firevpn_tv_or_code">Нет Telegram? Открой на телефоне fire-vpn.online/my и введи код:</string>
+    <string name="firevpn_tv_wait">Ждём подтверждения…</string>
+    <string name="firevpn_tv_error">Нет связи с fire-vpn.online. Проверь интернет на телевизоре.</string>
+    <string name="firevpn_tv_retry">Попробовать ещё раз</string>
+    <string name="firevpn_tv_close">Закрыть</string>
+    <string name="firevpn_tv_done">Подписка добавлена</string>
     <string name="firevpn_sub_cabinet">Личный кабинет</string>
     <string name="firevpn_connect">Подключить</string>
     <string name="firevpn_disconnect">Отключить</string>

@@ -20,6 +20,15 @@
     <string name="firevpn_sub_forever">no end date</string>
     <string name="firevpn_sub_traffic">Traffic</string>
     <string name="firevpn_paste_link">📋 Paste link</string>
+    <string name="firevpn_tv_add">📺 Add subscription</string>
+    <string name="firevpn_tv_title">Add a subscription to this TV</string>
+    <string name="firevpn_tv_scan">Scan the QR code with your phone camera — the FireVPN bot will open, tap «Yes, connect the TV».</string>
+    <string name="firevpn_tv_or_code">No Telegram? Open fire-vpn.online/my on your phone and enter the code:</string>
+    <string name="firevpn_tv_wait">Waiting for confirmation…</string>
+    <string name="firevpn_tv_error">No connection to fire-vpn.online. Check the internet on the TV.</string>
+    <string name="firevpn_tv_retry">Try again</string>
+    <string name="firevpn_tv_close">Close</string>
+    <string name="firevpn_tv_done">Subscription added</string>
     <string name="firevpn_sub_cabinet">My account</string>
     <string name="firevpn_connect">Connect</string>
     <string name="firevpn_disconnect">Disconnect</string>

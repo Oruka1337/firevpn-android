@@ -40,6 +40,18 @@ fun MainScreen(
     onAction: (MainAction) -> Unit,
     onNavigate: (MainDestination) -> Unit,
 ) {
+    // FireVPN: телевизор — окно с QR-кодом; полученная подписка импортируется как вставленная ссылка
+    var showTvLink by remember { mutableStateOf(false) }
+    val outerAction = onAction
+    val tvSubscription: (String) -> Unit = { url ->
+        showTvLink = false
+        outerAction(MainAction.ImportBatchConfig(url))
+    }
+    @Suppress("NAME_SHADOWING")
+    val onAction: (MainAction) -> Unit = { action ->
+        if (action == MainAction.TvLink) showTvLink = true else outerAction(action)
+    }
+    if (showTvLink) TvLinkDialog(onSubscription = tvSubscription, onDismiss = { showTvLink = false })
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
     val groups = uiState.groups
     val isLoading by mainViewModel.isLoading.collectAsStateWithLifecycle()
@@ -277,7 +289,7 @@ fun MainScreen(
                 }
             } else {
                 // FireVPN: серверов ещё нет — приветствие с «Вставить ссылку» вместо пустого экрана
-                FireVpnWelcome(contentPadding = innerPadding, onAction = onAction)
+                FireVpnWelcome(contentPadding = innerPadding, onAction = onAction, onTvSubscription = tvSubscription)
             }
         }
     }

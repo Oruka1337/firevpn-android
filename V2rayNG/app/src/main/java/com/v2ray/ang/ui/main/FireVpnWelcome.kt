@@ -2,6 +2,7 @@ package com.v2ray.ang.ui.main
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -35,8 +36,16 @@ private const val FIREVPN_BOT_URL = "https://t.me/VpnFire57_bot"
 private const val FIREVPN_CABINET_URL = "https://fire-vpn.online/my/"
 
 @Composable
-fun FireVpnWelcome(contentPadding: PaddingValues, onAction: (MainAction) -> Unit) {
+fun FireVpnWelcome(contentPadding: PaddingValues, onAction: (MainAction) -> Unit, onTvSubscription: (String) -> Unit) {
     val context = LocalContext.current
+    if (rememberIsTv()) {
+        // телевизор: вставить ссылку нечем — сразу QR-код, подписку подтверждают с телефона
+        Box(
+            modifier = Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 32.dp),
+            contentAlignment = Alignment.Center
+        ) { TvLinkPanel(onSubscription = onTvSubscription, modifier = Modifier.fillMaxWidth()) }
+        return
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

@@ -30,8 +30,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -103,17 +107,10 @@ fun FireVpnHome(
     val servers = mainViewModel.serverGroupState(group.id).collectAsStateWithLifecycle().value.servers
     val current = servers.firstOrNull { it.guid == selectedGuid }
     var showPicker by remember { mutableStateOf(false) }
+    val tv = rememberIsTv()
+    val connectFocus = remember { FocusRequester() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Ember)
-            .padding(contentPadding)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 18.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        InviteCard()
+    val subscription: @Composable () -> Unit = {
         SubscriptionCard(
             group = group,
             serverName = current?.profile?.remarks,
@@ -122,9 +119,14 @@ fun FireVpnHome(
             onSwap = { showPicker = true },
         ) {
             // «Подключить» в одной карточке с сервером — видно без прокрутки; срок и трафик — ниже
-            ConnectButton(isRunning = isRunning, onClick = { onAction(MainAction.ToggleService) })
+            ConnectButton(isRunning = isRunning, focus = connectFocus, onClick = { onAction(MainAction.ToggleService) })
         }
-        UsageTiles(group, onPasteLink = { onAction(MainAction.ImportClipboard) })
+        // на телевизоре буфера обмена нет — новую подписку добавляют с телефона по QR-коду
+        UsageTiles(
+            group,
+            pasteLabel = stringResource(if (tv) R.string.firevpn_tv_add else R.string.firevpn_paste_link),
+            onPasteLink = { onAction(if (tv) MainAction.TvLink else MainAction.ImportClipboard) },
+        )
         Text(
             text = statusText,
             color = TextDim,
@@ -134,7 +136,45 @@ fun FireVpnHome(
                 .fillMaxWidth()
                 .clickable(enabled = isRunning) { onAction(MainAction.TestCurrentServer) }
         )
-        Spacer(Modifier.navigationBarsPadding())
+    }
+
+    if (tv) {
+        // телевизор: широкий экран — слева подписка и «Подключить», справа феникс; без «Пригласи друзей» (там Telegram)
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Ember)
+                .padding(contentPadding)
+                .padding(horizontal = 40.dp, vertical = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(32.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1.3f).fillMaxHeight().verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) { subscription() }
+            Image(
+                painter = painterResource(R.drawable.firevpn_phoenix),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.weight(1f).fillMaxHeight()
+            )
+        }
+        // сразу выбрана главная кнопка — достаточно нажать «ОК» на пульте
+        LaunchedEffect(Unit) { runCatching { connectFocus.requestFocus() } }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Ember)
+                .padding(contentPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            InviteCard()
+            subscription()
+            Spacer(Modifier.navigationBarsPadding())
+        }
     }
 
     if (showPicker) {
@@ -244,10 +284,10 @@ private fun SubscriptionCard(
             } else {
                 Spacer(Modifier.weight(1f))
             }
-            IconButton(onClick = onRefresh) {
+            IconButton(onClick = onRefresh, modifier = Modifier.tvFocus(CircleShape)) {
                 Icon(painterResource(R.drawable.ic_refresh_24dp), contentDescription = null, tint = Flame)
             }
-            IconButton(onClick = onSwap) {
+            IconButton(onClick = onSwap, modifier = Modifier.tvFocus(CircleShape)) {
                 Icon(painterResource(R.drawable.ic_firevpn_swap_24dp), contentDescription = null, tint = Flame)
             }
         }
@@ -258,7 +298,7 @@ private fun SubscriptionCard(
 
 /** Срок подписки и трафик — под кнопкой «Подключить»; под датой — «Вставить ссылку» (новая подписка из буфера) */
 @Composable
-private fun UsageTiles(group: GroupMapItem, onPasteLink: () -> Unit) {
+private fun UsageTiles(group: GroupMapItem, pasteLabel: String, onPasteLink: () -> Unit) {
     val info = group.usageInfo
     val now = System.currentTimeMillis() / 1000
     val active = info != null && (info.expire == 0L || info.expire > now)
@@ -277,11 +317,12 @@ private fun UsageTiles(group: GroupMapItem, onPasteLink: () -> Unit) {
             modifier = Modifier.weight(1f).fillMaxHeight(),
             action = {
                 Text(
-                    text = stringResource(R.string.firevpn_paste_link),
+                    text = pasteLabel,
                     color = Flame,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier
+                        .tvFocus(RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
                         .border(1.dp, Color(0x66FF6A1F), RoundedCornerShape(10.dp))
                         .clickable(onClick = onPasteLink)
@@ -329,6 +370,7 @@ private fun GlowButton(text: String, filled: Boolean, modifier: Modifier = Modif
     val shape = RoundedCornerShape(18.dp)
     Box(
         modifier = modifier
+            .tvFocus(shape)
             .fillMaxWidth()
             .height(52.dp)
             .fireGlow(shape, glow = 8.dp)
@@ -345,10 +387,12 @@ private fun GlowButton(text: String, filled: Boolean, modifier: Modifier = Modif
 }
 
 @Composable
-private fun ConnectButton(isRunning: Boolean, onClick: () -> Unit) {
+private fun ConnectButton(isRunning: Boolean, focus: FocusRequester, onClick: () -> Unit) {
     val shape = RoundedCornerShape(26.dp)
     Box(
         modifier = Modifier
+            .focusRequester(focus)
+            .tvFocus(shape)
             .fillMaxWidth()
             .height(110.dp)  // главная кнопка экрана — крупная, чтобы попасть с первого раза
             .fireGlow(shape, glow = if (isRunning) 28.dp else 18.dp, strong = true)
@@ -385,12 +429,15 @@ private fun ServerPicker(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
+        val selectedFocus = remember { FocusRequester() }
         LazyColumn(modifier = Modifier.padding(bottom = 24.dp)) {
             items(servers) { (guid, name) ->
                 val selected = guid == selectedGuid
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
+                        .then(if (selected) Modifier.focusRequester(selectedFocus) else Modifier)
+                        .tvFocus(RoundedCornerShape(12.dp))
                         .fillMaxWidth()
                         .clickable { onPick(guid) }
                         .padding(horizontal = 20.dp, vertical = 16.dp)
@@ -401,6 +448,10 @@ private fun ServerPicker(
                     if (selected) Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(Flame))
                 }
             }
+        }
+        // на телевизоре пульт сразу стоит на текущем сервере
+        if (rememberIsTv() && servers.any { it.first == selectedGuid }) {
+            LaunchedEffect(Unit) { runCatching { selectedFocus.requestFocus() } }
         }
     }
 }

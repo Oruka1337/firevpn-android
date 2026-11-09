@@ -50,6 +50,7 @@ sealed interface MainAction {
 
     data object ImportQRcode : MainAction
     data object ImportClipboard : MainAction
+    data object TvLink : MainAction  // FireVPN: телевизор — подписка по QR-коду (окно в MainScreen)
     data object ImportConfigLocal : MainAction
     data class ImportManually(val type: Int) : MainAction
     data object RestartService : MainAction
